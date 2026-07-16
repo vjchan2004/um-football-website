@@ -1,65 +1,99 @@
-import Image from "next/image";
+import Link from "next/link";
+import { prisma } from "@/lib/prisma";
+import { CURRENT_SEASON } from "@/lib/config";
 
-export default function Home() {
+async function getStats() {
+  try {
+    const [playerCount, gameCount] = await Promise.all([
+      prisma.player.count({ where: { season: CURRENT_SEASON } }),
+      prisma.game.count({ where: { season: CURRENT_SEASON } }),
+    ]);
+    return { playerCount, gameCount };
+  } catch {
+    return { playerCount: 0, gameCount: 0 };
+  }
+}
+
+export default async function HomePage() {
+  const { playerCount, gameCount } = await getStats();
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="text-center mb-16">
+        <div className="inline-block mb-4">
+          <span className="text-7xl font-black tracking-tighter text-[var(--um-maize)]">M</span>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+        <h1 className="text-4xl sm:text-5xl font-bold text-white mb-4">
+          Michigan Football Analytics
+        </h1>
+        <p className="text-gray-400 text-lg max-w-xl mx-auto">
+          Roster, player stats, and game-by-game breakdowns for the Michigan Wolverines.
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
+        {[
+          { label: "Players on Roster", value: playerCount || "—" },
+          { label: "Games Tracked", value: gameCount || "—" },
+          { label: "Season", value: CURRENT_SEASON },
+        ].map((s) => (
+          <div
+            key={s.label}
+            className="bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 text-center"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <div className="text-3xl font-bold text-[var(--um-maize)] mb-1">{s.value}</div>
+            <div className="text-sm text-gray-400 uppercase tracking-wide">{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {/* Featured: Play-by-Play Viewer */}
+      <Link
+        href="/games/52/plays"
+        className="group block bg-[var(--surface)] border-2 border-[var(--um-maize)]/40 hover:border-[var(--um-maize)] rounded-xl p-6 mb-4 transition-colors"
+      >
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-xs font-bold text-[var(--um-maize)] uppercase tracking-widest">Featured</span>
+          <span className="text-xs text-gray-500 bg-[var(--surface-2)] px-2 py-0.5 rounded">New</span>
         </div>
-      </main>
+        <h2 className="text-xl font-bold text-white group-hover:text-[var(--um-maize)] transition-colors mb-1">
+          Play-by-Play Viewer →
+        </h2>
+        <p className="text-sm text-gray-400">
+          Step through every play with an interactive field visualization, player spotlights, and drive-by-drive breakdowns. Try it on the Texas bowl game.
+        </p>
+      </Link>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {[
+          {
+            href: "/roster",
+            title: "View Roster",
+            desc: "Full depth chart by position with player profiles.",
+          },
+          {
+            href: "/players",
+            title: "Player Stats",
+            desc: "Passing, rushing, receiving, and defensive analytics.",
+          },
+          {
+            href: "/games",
+            title: "Game Log",
+            desc: "Season schedule, scores, and game-by-game breakdowns.",
+          },
+        ].map((card) => (
+          <Link
+            key={card.href}
+            href={card.href}
+            className="group bg-[var(--surface)] border border-[var(--border)] rounded-xl p-6 hover:border-[var(--um-maize)] transition-colors"
+          >
+            <h2 className="text-lg font-semibold text-white group-hover:text-[var(--um-maize)] transition-colors mb-1">
+              {card.title} →
+            </h2>
+            <p className="text-sm text-gray-400">{card.desc}</p>
+          </Link>
+        ))}
+      </div>
     </div>
   );
 }

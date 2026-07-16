@@ -1,0 +1,178 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Player {
+  id         Int      @id @default(autoincrement())
+  cfbId      Int?     @unique // college-football-data.com player ID
+  name       String
+  position   String
+  jersey     Int?
+  year       String   // FR, SO, JR, SR, GR
+  height     String?  // e.g. "6-2"
+  weight     Int?
+  hometown    String?
+  headshotUrl String?
+  season      Int
+
+  passingStats   PassingStat[]
+  rushingStats   RushingStat[]
+  receivingStats ReceivingStat[]
+  defensiveStats DefensiveStat[]
+
+  // Kicking season totals (PK)
+  fgMade        Int?
+  fgAtt         Int?
+  fgLong        Int?
+  xpMade        Int?
+  xpAtt         Int?
+  kickingPts    Int?
+
+  // Punting season totals (P)
+  punts         Int?
+  puntYards     Int?
+  puntLong      Int?
+  puntIn20      Int?
+  puntTouchbacks Int?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([season, position])
+}
+
+model Game {
+  id           Int      @id @default(autoincrement())
+  cfbId        Int?     @unique
+  season       Int
+  week         Int
+  homeTeam     String
+  awayTeam     String
+  homeScore    Int?
+  awayScore    Int?
+  gameDate     DateTime
+  venue        String?
+  conference   String?  // regular, bowl, playoff
+
+  passingStats   PassingStat[]
+  rushingStats   RushingStat[]
+  receivingStats ReceivingStat[]
+  defensiveStats DefensiveStat[]
+  teamStats      TeamGameStat[]
+
+  createdAt DateTime @default(now())
+}
+
+model PassingStat {
+  id           Int    @id @default(autoincrement())
+  playerId     Int
+  gameId       Int
+  season       Int
+  completions  Int    @default(0)
+  attempts     Int    @default(0)
+  yards        Int    @default(0)
+  touchdowns   Int    @default(0)
+  interceptions Int   @default(0)
+  passer_rating Float?
+
+  player Player @relation(fields: [playerId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  @@unique([playerId, gameId])
+}
+
+model RushingStat {
+  id         Int    @id @default(autoincrement())
+  playerId   Int
+  gameId     Int
+  season     Int
+  carries    Int    @default(0)
+  yards      Int    @default(0)
+  touchdowns Int    @default(0)
+  longRun    Int?
+  yardsPerCarry Float?
+
+  player Player @relation(fields: [playerId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  @@unique([playerId, gameId])
+}
+
+model ReceivingStat {
+  id           Int    @id @default(autoincrement())
+  playerId     Int
+  gameId       Int
+  season       Int
+  receptions   Int    @default(0)
+  targets      Int    @default(0)
+  yards        Int    @default(0)
+  touchdowns   Int    @default(0)
+  longReception Int?
+
+  player Player @relation(fields: [playerId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  @@unique([playerId, gameId])
+}
+
+model TeamGameStat {
+  id             Int     @id @default(autoincrement())
+  gameId         Int
+  team           String
+  isHome         Boolean
+
+  // Offense
+  totalYards     Int?
+  passYards      Int?
+  completions    Int?
+  passAttempts   Int?
+  rushYards      Int?
+  rushAttempts   Int?
+  passTDs        Int?
+  rushTDs        Int?
+  firstDowns     Int?
+  thirdDownConv  Int?
+  thirdDownAtt   Int?
+  fourthDownConv Int?
+  fourthDownAtt  Int?
+  possessionTime String?
+  penalties      Int?
+  penaltyYards   Int?
+
+  // Turnovers
+  turnovers      Int?
+  interceptions  Int?
+  fumblesLost    Int?
+
+  // Defense
+  sacks          Int?
+  tacklesForLoss Int?
+  qbHurries      Int?
+
+  game Game @relation(fields: [gameId], references: [id])
+
+  @@unique([gameId, team])
+}
+
+model DefensiveStat {
+  id              Int    @id @default(autoincrement())
+  playerId        Int
+  gameId          Int
+  season          Int
+  tackles         Int    @default(0)
+  tacklesForLoss  Int    @default(0)
+  sacks           Float  @default(0)
+  interceptions   Int    @default(0)
+  passBreakups    Int    @default(0)
+  forcedFumbles   Int    @default(0)
+
+  player Player @relation(fields: [playerId], references: [id])
+  game   Game   @relation(fields: [gameId], references: [id])
+
+  @@unique([playerId, gameId])
+}
