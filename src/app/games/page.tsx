@@ -38,7 +38,11 @@ export default async function GamesPage() {
     <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-1">{CURRENT_SEASON} Schedule</h1>
-        <p className="text-gray-400">{games.length} games · click a game to see box score</p>
+        <p className="text-gray-400">
+          {games.length} games · click a game for the full box score, or open{" "}
+          <span className="text-[var(--um-maize)]">Plays →</span> for an interactive, play-by-play
+          field viewer of every drive
+        </p>
       </div>
 
       {games.length === 0 ? (

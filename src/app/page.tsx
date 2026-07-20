@@ -29,6 +29,9 @@ export default async function HomePage() {
         <p className="text-gray-400 text-lg max-w-xl mx-auto">
           Roster, player stats, and game-by-game breakdowns for the Michigan Wolverines.
         </p>
+        <p className="text-gray-500 text-sm mt-3">
+          Built by <span className="text-gray-300 font-medium">Victor Chan</span>
+        </p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
